@@ -24,7 +24,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TArray<ATObject*> Objects;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere,Category = "Classes")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
+		TSubclassOf<ATObject> Object;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
+		TSubclassOf<ATObject> SolidWall;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
 		TSubclassOf<ATObject> Wall;
 
 	UTGameInstance();
@@ -38,6 +42,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void ProcessAnswer(FString _answer);
 
-	void CreateObject(int _x, int _y);
+	void CreateObject(int _x, int _y, int _type);
 	void DestroyObject(int _x, int _y);
 };

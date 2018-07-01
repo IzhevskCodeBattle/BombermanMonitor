@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TGameInstance.h"
 #include "Engine.h"
@@ -42,22 +42,25 @@ void UTGameInstance::ProcessAnswer(FString _answer)
 					DestroyObject(i, j);
 					break;
 
+				case L'☼':
+					CreateObject(i, j, 1);
+					break;
+
+				case L'#':
+					CreateObject(i, j, 2);
+					break;
+
 				default:
-					CreateObject(i, j);
+					CreateObject(i, j, 0);
 					break;
 				}
 				position++;
 			}
 		}
-		_answer.RightChop(position);
-	}
-	else
-	{
-		_answer = _answer.RightChop(6);
 	}
 }
 
-void UTGameInstance::CreateObject(int _x, int _y)
+void UTGameInstance::CreateObject(int _x, int _y, int _type)
 {
 	ATObject *result = nullptr;
 
@@ -74,7 +77,20 @@ void UTGameInstance::CreateObject(int _x, int _y)
 	{
 		FVector initialLocation(_x * 100 + 50, _y * 100 + 50, 50);
 
-		result = GetWorld()->SpawnActor<ATObject>(Wall, initialLocation, FRotator::ZeroRotator);
+		switch (_type)
+		{
+		case 1:
+			result = GetWorld()->SpawnActor<ATObject>(SolidWall, initialLocation, FRotator::ZeroRotator);
+			break;
+
+		case 2:
+			result = GetWorld()->SpawnActor<ATObject>(Wall, initialLocation, FRotator::ZeroRotator);
+			break;
+
+		default:
+			result = GetWorld()->SpawnActor<ATObject>(Object, initialLocation, FRotator::ZeroRotator);
+			break;
+		}
 
 		result->X = _x;
 		result->Y = _y;
