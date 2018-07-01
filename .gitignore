@@ -1,0 +1,11 @@
+﻿################################################################################
+# Данный GITIGNORE-файл был автоматически создан Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Binaries
+/Intermediate
+/Plugins/WebSocket/Binaries
+/Plugins/WebSocket/Intermediate
+/Saved
+/BombermanMonitor.sln
