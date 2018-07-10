@@ -2,29 +2,27 @@
 
 #include "TGameInstance.h"
 #include "Engine.h"
-//#include "ThirdParty\libWebSockets\libwebsockets\include\Win64\2015\libwebsockets.h"
 
-UTGameInstance::UTGameInstance()
+void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponsePtr _response, bool _wasSuccessful)
 {
-}
+	TSharedPtr<FJsonObject> JsonObject;
 
-void UTGameInstance::Connect()
-{
-	
-}
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(_response->GetContentAsString());
 
-FString UTGameInstance::MakeConnectionString(FString _serverAddress, FString _serverPort, FString _userName, FString _code)
-{
-	return "ws://" + _serverAddress + ":" + _serverPort + "/codenjoy-contest/ws?user=" + _userName + "&code=" + _code;
-}
-
-void UTGameInstance::ProcessAnswer(FString _answer)
-{
-	if (_answer.StartsWith("board="))
+	if (FJsonSerializer::Deserialize(Reader, JsonObject))
 	{
-		_answer = _answer.RightChop(6);
+		FString map = JsonObject->GetStringField("map");
 
-		int size = FMath::Sqrt(_answer.Len());
+		//////////////////////////////////////////////
+		FString map2;
+		for (int i = 0; i < map.Len(); i++)
+		{
+			if (map[i] != '\n')
+				map2.AppendChar(map[i]);
+		}
+		map = map2;
+		//////////////////////////////////////////////
+		int size = FMath::Sqrt(map.Len());
 		if (Ground && size != Size)
 		{
 			Ground->Init(size);
@@ -36,7 +34,7 @@ void UTGameInstance::ProcessAnswer(FString _answer)
 		{
 			for (int i = 0; i < Size; i++)
 			{
-				switch (_answer[position])
+				switch (map[position])
 				{
 				case L' ':
 					DestroyObject(i, j);
@@ -58,6 +56,25 @@ void UTGameInstance::ProcessAnswer(FString _answer)
 			}
 		}
 	}
+}
+
+UTGameInstance::UTGameInstance()
+{
+}
+
+void UTGameInstance::Connect(FString _serverAddress, FString _serverPort)
+{
+	http = &FHttpModule::Get();
+	url = "http://" + _serverAddress + ":" + _serverPort + "/codenjoy-contest/rest/game/bomberman";
+}
+
+void UTGameInstance::Update()
+{
+	TSharedRef<IHttpRequest> Request = http->CreateRequest();
+	Request->OnProcessRequestComplete().BindUObject(this, &UTGameInstance::OnResponseReceived);
+	Request->SetURL(url);
+	Request->SetVerb("GET");
+	Request->ProcessRequest();
 }
 
 void UTGameInstance::CreateObject(int _x, int _y, int _type)

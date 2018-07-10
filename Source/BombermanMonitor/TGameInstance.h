@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Runtime/Online/HTTP/Public/Http.h"
 #include "Engine/GameInstance.h"
 #include "TGround.h"
 #include "TObject.h"
@@ -16,7 +17,14 @@ class BOMBERMANMONITOR_API UTGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
+private:
+	FHttpModule * http;
+	FString url;
+
+	void OnResponseReceived(FHttpRequestPtr _request, FHttpResponsePtr _response, bool _wasSuccessful);
+
 public:
+
 	UPROPERTY(BlueprintReadOnly)
 		int Size;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -34,13 +42,10 @@ public:
 	UTGameInstance();
 
 	UFUNCTION(BlueprintCallable)
-		void Connect();
+		void Connect(FString _serverAddress, FString _serverPort);
 
 	UFUNCTION(BlueprintCallable)
-		FString MakeConnectionString(FString _serverAddress, FString _serverPort, FString _userName, FString _code);
-
-	UFUNCTION(BlueprintCallable)
-		void ProcessAnswer(FString _answer);
+		void Update();
 
 	void CreateObject(int _x, int _y, int _type);
 	void DestroyObject(int _x, int _y);
