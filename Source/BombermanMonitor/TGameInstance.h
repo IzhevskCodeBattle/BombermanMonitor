@@ -7,6 +7,8 @@
 #include "Engine/GameInstance.h"
 #include "TGround.h"
 #include "TObject.h"
+#include "TPlayer.h"
+#include "TCounterObject.h"
 #include "TGameInstance.generated.h"
 
 /**
@@ -18,26 +20,45 @@ class BOMBERMANMONITOR_API UTGameInstance : public UGameInstance
 	GENERATED_BODY()
 
 private:
+	enum class EObjectType : uint8
+	{
+		SOLID_WALL,
+		WALL,
+		BOOM
+	};
+
 	FHttpModule * http;
 	FString url;
 
 	void OnResponseReceived(FHttpRequestPtr _request, FHttpResponsePtr _response, bool _wasSuccessful);
 
-public:
+	template<typename T> T* CreateObject(int _x, int _y, TSubclassOf<T> &_type);
 
+public:
 	UPROPERTY(BlueprintReadOnly)
 		int Size;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		ATGround *Ground;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TArray<ATObject*> Objects;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		TArray<ATPlayer*> Players;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		TArray<ATMovableObject*> Choppers;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
-		TSubclassOf<ATObject> Object;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
 		TSubclassOf<ATObject> SolidWall;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
 		TSubclassOf<ATObject> Wall;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
+		TSubclassOf<ATPlayer> Player;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
+		TSubclassOf<ATMovableObject> Chopper;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
+		TSubclassOf<ATObject> Boom;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
+		TSubclassOf<ATCounterObject> Bomb;
 
 	UTGameInstance();
 
@@ -47,6 +68,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void Update();
 
-	void CreateObject(int _x, int _y, int _type);
+	void CreateSolidWall(int _x, int _y);
+	void CreateWall(int _x, int _y);
+	void CreateBomb(int _x, int _y, int _counter);
+	void CreateBoom(int _x, int _y);
 	void DestroyObject(int _x, int _y);
+
+	void UpdatePlayer(FString &_name, int _x, int _y);
+	void UpdateChopper(int _i, int _x, int _y);
 };
