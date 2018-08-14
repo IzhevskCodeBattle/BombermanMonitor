@@ -4,14 +4,14 @@
 
 ATMovableObject::ATMovableObject()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ATMovableObject::Tick(float _deltaTime)
 {
 	Super::Tick(_deltaTime);
 
-	FVector target(ToX * 100, ToY * 100, 0);
+	FVector target(ToX * 100 + 50, ToY * 100 + 50, 0);
 
 	FVector pos = GetActorLocation();
 

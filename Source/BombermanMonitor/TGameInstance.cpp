@@ -13,39 +13,38 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 	{
 		FString map = JsonObject->GetStringField("map");
 
-		for (auto player : Players)
-		{
-			player->ToDelete = true;
-		}
-		for (auto player : JsonObject->GetArrayField("playerInfoList"))
-		{
-			FString name = player->AsObject()->GetStringField("name");
-			int score = player->AsObject()->GetIntegerField("score");
-			UpdatePlayer(name, player->AsObject()->GetIntegerField("x"), player->AsObject()->GetIntegerField("y"));
-		};
-		Players.RemoveAll([](ATPlayer *_object)
-		{
-			if (_object->ToDelete)
-			{
-				_object->Destroy();
-				return true;
-			}
-			return false;
-		});
-
-		int i = 0;
-		for (auto chopper : JsonObject->GetArrayField("choppers"))
-		{
-			i++;
-			UpdateChopper(i, chopper->AsObject()->GetIntegerField("x"), chopper->AsObject()->GetIntegerField("y"));
-		};
-
 		int size = FMath::Sqrt(map.Len());
-		if (Ground && size != Size)
+		if (size != Size)
 		{
-			Ground->Init(size);
+			if (Ground)
+				Ground->Init(size);
+			if (Objects != nullptr)
+			{
+				for (int j = 0; j < Size; j++)
+				{
+					for (int i = 0; i < Size; i++)
+					{
+						if (Objects[j][i] != nullptr)
+						{
+							Objects[j][i]->Destroy();
+							delete Objects[j][i];
+						}
+					}
+					delete[] Objects[j];
+				}
+				delete[] Objects;
+			}
+			Size = size;
+			Objects = new ATObject**[Size];
+			for (int j = 0; j < Size; j++)
+			{
+				Objects[j] = new ATObject*[Size];
+				for (int i = 0; i < Size; i++)
+				{
+					Objects[j][i] = nullptr;
+				}
+			}
 		}
-		Size = size;
 
 		int position = 0;
 		for (int j = 0; j < Size; j++)
@@ -66,43 +65,68 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 					CreateWall(i, j);
 					break;
 
+				case L'҉':
+					CreateBoom(i, j);
+					break;
+
 				case L'1': CreateBomb(i, j, 1); break;
 				case L'2': CreateBomb(i, j, 2); break;
 				case L'3': CreateBomb(i, j, 3); break;
 				case L'4': CreateBomb(i, j, 4); break;
 				case L'5': CreateBomb(i, j, 5); break;
-
-				default:
-					break;
 				}
 				position++;
 			}
 		}
+
+		for (auto player : Players)
+		{
+			player->ToDelete = true;
+		}
+		for (auto player : JsonObject->GetArrayField("playerInfoList"))
+		{
+			FString name = player->AsObject()->GetStringField("name");
+			int score = player->AsObject()->GetIntegerField("score");
+			int y = player->AsObject()->GetIntegerField("y");
+			//////////////////////
+			y = Size - y + 1;
+			//////////////////////
+			UpdatePlayer(name, player->AsObject()->GetIntegerField("x"), y);
+		};
+		Players.RemoveAll([](ATPlayer *_object)
+		{
+			if (_object->ToDelete)
+			{
+				_object->Destroy();
+				return true;
+			}
+			return false;
+		});
+
+		int i = 0;
+		for (auto chopper : JsonObject->GetArrayField("choppers"))
+		{
+			i++;
+			int y = chopper->AsObject()->GetIntegerField("y");
+			//////////////////////
+			y = Size - y + 1;
+			//////////////////////
+			UpdateChopper(i, chopper->AsObject()->GetIntegerField("x"), y);
+		};
 	}
 }
 
 template<typename T> T* UTGameInstance::CreateObject(int _x, int _y, TSubclassOf<T> &_type)
 {
-	T *result = nullptr;
-
-	if (Objects.Num() > 0)
+	if (Objects[_y][_x])
 	{
-		ATObject **resultPtr = Objects.FindByPredicate([&](const ATObject *t) { return t->X == _x && t->Y == _y; });
-		if (resultPtr)
-		{
-			result = (T*)(*resultPtr);
-		}
+		return (T*)Objects[_y][_x];
 	}
 
-	if (result == nullptr)
-	{
-		FVector initialLocation(_x * 100 + 50, _y * 100 + 50, 50);
-
-		result = GetWorld()->SpawnActor<T>(_type, initialLocation, FRotator::ZeroRotator);
-		result->X = _x;
-		result->Y = _y;
-		Objects.Add(result);
-	}
+	T *result = GetWorld()->SpawnActor<T>(_type, GetVectorByCoords(_x, _y), FRotator::ZeroRotator);
+	result->X = _x;
+	result->Y = _y;
+	Objects[_y][_x] = result;
 
 	return result;
 }
@@ -148,14 +172,13 @@ void UTGameInstance::CreateBoom(int _x, int _y)
 
 void UTGameInstance::DestroyObject(int _x, int _y)
 {
-	if (Objects.Num() > 0)
+	AsyncTask(ENamedThreads::GameThread, [&]()
 	{
-		ATObject **resultPtr = Objects.FindByPredicate([&](const ATObject *t) { return t->X == _x && t->Y == _y; });
-		if (resultPtr)
+		if (Objects[_y][_x])
 		{
-			(*resultPtr)->Destroy();
+			Objects[_y][_x]->Destroy();
 		}
-	}
+	});
 }
 
 void UTGameInstance::UpdatePlayer(FString &_name, int _x, int _y)
@@ -173,13 +196,11 @@ void UTGameInstance::UpdatePlayer(FString &_name, int _x, int _y)
 
 	if (result == nullptr)
 	{
-		FVector initialLocation(_x * 100 + 50, _y * 100 + 50, 50);
-
-		result = GetWorld()->SpawnActor<ATPlayer>(Player, initialLocation, FRotator::ZeroRotator);
+		result = GetWorld()->SpawnActor<ATPlayer>(Player, GetVectorByCoords(_x, _y), FRotator::ZeroRotator);
 		result->Name = _name;
 		result->X = _x;
 		result->Y = _y;
-		Objects.Add(result);
+		Players.Add(result);
 	}
 
 	result->ToX = _x;
@@ -198,11 +219,10 @@ void UTGameInstance::UpdateChopper(int _i, int _x, int _y)
 	}
 	else
 	{
-		FVector initialLocation(_x * 100 + 50, _y * 100 + 50, 50);
-
-		result = GetWorld()->SpawnActor<ATMovableObject>(Chopper, initialLocation, FRotator::ZeroRotator);
+		result = GetWorld()->SpawnActor<ATMovableObject>(Chopper, GetVectorByCoords(_x, _y), FRotator::ZeroRotator);
 		result->X = _x;
 		result->Y = _y;
+		Choppers.SetNum(_i);
 		Choppers.EmplaceAt(_i, result);
 	}
 

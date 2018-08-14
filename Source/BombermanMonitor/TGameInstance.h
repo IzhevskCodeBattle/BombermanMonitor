@@ -33,6 +33,10 @@ private:
 	void OnResponseReceived(FHttpRequestPtr _request, FHttpResponsePtr _response, bool _wasSuccessful);
 
 	template<typename T> T* CreateObject(int _x, int _y, TSubclassOf<T> &_type);
+	FVector GetVectorByCoords(int _x, int _y)
+	{
+		return FVector(_x * 100 + 50, _y * 100 + 50, 0);
+	}
 
 public:
 	UPROPERTY(BlueprintReadOnly)
@@ -40,8 +44,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		ATGround *Ground;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TArray<ATObject*> Objects;
+	ATObject*** Objects;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TArray<ATPlayer*> Players;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
