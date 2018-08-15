@@ -44,7 +44,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		ATGround *Ground;
 
-	ATObject*** Objects;
+	TSharedPtr<ATObject>** Objects;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TArray<ATPlayer*> Players;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)

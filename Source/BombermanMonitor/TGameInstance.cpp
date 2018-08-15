@@ -24,10 +24,10 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 				{
 					for (int i = 0; i < Size; i++)
 					{
-						if (Objects[j][i] != nullptr)
+						if (Objects[j][i].IsValid())
 						{
 							Objects[j][i]->Destroy();
-							delete Objects[j][i];
+							Objects[j][i].Reset();
 						}
 					}
 					delete[] Objects[j];
@@ -35,10 +35,10 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 				delete[] Objects;
 			}
 			Size = size;
-			Objects = new ATObject**[Size];
+			Objects = new TSharedPtr<ATObject>*[Size];
 			for (int j = 0; j < Size; j++)
 			{
-				Objects[j] = new ATObject*[Size];
+				Objects[j] = new TSharedPtr<ATObject>[Size];
 				for (int i = 0; i < Size; i++)
 				{
 					Objects[j][i] = nullptr;
@@ -87,11 +87,13 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 		{
 			FString name = player->AsObject()->GetStringField("name");
 			int score = player->AsObject()->GetIntegerField("score");
+			int x = player->AsObject()->GetIntegerField("x");
 			int y = player->AsObject()->GetIntegerField("y");
+			char state = map[y*Size + x];
 			//////////////////////
-			y = Size - y + 1;
+			y = Size - y - 1;
 			//////////////////////
-			UpdatePlayer(name, player->AsObject()->GetIntegerField("x"), y);
+			UpdatePlayer(name, x, y);
 		};
 		Players.RemoveAll([](ATPlayer *_object)
 		{
@@ -107,26 +109,28 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 		for (auto chopper : JsonObject->GetArrayField("choppers"))
 		{
 			i++;
+			int x = chopper->AsObject()->GetIntegerField("x");
 			int y = chopper->AsObject()->GetIntegerField("y");
+			char state = map[y*Size + x];
 			//////////////////////
-			y = Size - y + 1;
+			y = Size - y - 1;
 			//////////////////////
-			UpdateChopper(i, chopper->AsObject()->GetIntegerField("x"), y);
+			UpdateChopper(i, x, y);
 		};
 	}
 }
 
 template<typename T> T* UTGameInstance::CreateObject(int _x, int _y, TSubclassOf<T> &_type)
 {
-	if (Objects[_y][_x])
+	if (Objects[_y][_x].IsValid())
 	{
-		return (T*)Objects[_y][_x];
+		return (T*)Objects[_y][_x].Get();
 	}
 
 	T *result = GetWorld()->SpawnActor<T>(_type, GetVectorByCoords(_x, _y), FRotator::ZeroRotator);
 	result->X = _x;
 	result->Y = _y;
-	Objects[_y][_x] = result;
+	Objects[_y][_x] = TSharedPtr<ATObject>(result);
 
 	return result;
 }
@@ -172,13 +176,10 @@ void UTGameInstance::CreateBoom(int _x, int _y)
 
 void UTGameInstance::DestroyObject(int _x, int _y)
 {
-	AsyncTask(ENamedThreads::GameThread, [&]()
+	if (Objects[_y][_x].IsValid())
 	{
-		if (Objects[_y][_x])
-		{
-			Objects[_y][_x]->Destroy();
-		}
-	});
+		Objects[_y][_x]->Destroy();
+	}
 }
 
 void UTGameInstance::UpdatePlayer(FString &_name, int _x, int _y)
