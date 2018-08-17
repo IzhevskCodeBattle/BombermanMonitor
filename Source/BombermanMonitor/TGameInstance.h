@@ -73,6 +73,7 @@ public:
 
 	void CreateSolidWall(int _x, int _y);
 	void CreateWall(int _x, int _y);
+	void DestroyWall(int _x, int _y);
 	void CreateBomb(int _x, int _y, int _counter);
 	void CreateBoom(int _x, int _y);
 	void DestroyObject(int _x, int _y);

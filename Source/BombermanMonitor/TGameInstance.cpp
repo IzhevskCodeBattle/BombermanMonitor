@@ -26,7 +26,7 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 					{
 						if (Objects[j][i].IsValid())
 						{
-							Objects[j][i]->Destroy();
+							Objects[j][i]->ConditionalBeginDestroy();
 							Objects[j][i].Reset();
 						}
 					}
@@ -63,6 +63,9 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 
 				case L'#':
 					CreateWall(i, j);
+					break;
+				case L'H':
+					DestroyWall(i, j);
 					break;
 
 				case L'҉':
@@ -164,6 +167,10 @@ void UTGameInstance::CreateWall(int _x, int _y)
 	CreateObject<ATObject>(_x, _y, Wall);
 }
 
+void UTGameInstance::DestroyWall(int _x, int _y)
+{
+}
+
 void UTGameInstance::CreateBomb(int _x, int _y, int _counter)
 {
 	CreateObject<ATCounterObject>(_x, _y, Bomb)->Counter = _counter;
@@ -176,9 +183,10 @@ void UTGameInstance::CreateBoom(int _x, int _y)
 
 void UTGameInstance::DestroyObject(int _x, int _y)
 {
-	if (Objects[_y][_x].IsValid())
+	if (Objects[_y][_x].IsValid() && Objects[_y][_x].Get()->IsValidLowLevel())
 	{
-		Objects[_y][_x]->Destroy();
+		Objects[_y][_x].Get()->Destroy();
+		Objects[_y][_x].Reset();
 	}
 }
 
