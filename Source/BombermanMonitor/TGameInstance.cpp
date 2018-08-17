@@ -18,32 +18,7 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 		{
 			if (Ground)
 				Ground->Init(size);
-			if (Objects != nullptr)
-			{
-				for (int j = 0; j < Size; j++)
-				{
-					for (int i = 0; i < Size; i++)
-					{
-						if (Objects[j][i].IsValid())
-						{
-							Objects[j][i]->ConditionalBeginDestroy();
-							Objects[j][i].Reset();
-						}
-					}
-					delete[] Objects[j];
-				}
-				delete[] Objects;
-			}
 			Size = size;
-			Objects = new TSharedPtr<ATObject>*[Size];
-			for (int j = 0; j < Size; j++)
-			{
-				Objects[j] = new TSharedPtr<ATObject>[Size];
-				for (int i = 0; i < Size; i++)
-				{
-					Objects[j][i] = nullptr;
-				}
-			}
 		}
 
 		int position = 0;
@@ -82,10 +57,6 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 			}
 		}
 
-		for (auto player : Players)
-		{
-			player->ToDelete = true;
-		}
 		for (auto player : JsonObject->GetArrayField("playerInfoList"))
 		{
 			FString name = player->AsObject()->GetStringField("name");
@@ -98,15 +69,6 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 			//////////////////////
 			UpdatePlayer(name, x, y);
 		};
-		Players.RemoveAll([](ATPlayer *_object)
-		{
-			if (_object->ToDelete)
-			{
-				_object->Destroy();
-				return true;
-			}
-			return false;
-		});
 
 		int i = 0;
 		for (auto chopper : JsonObject->GetArrayField("choppers"))
@@ -125,17 +87,22 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 
 template<typename T> T* UTGameInstance::CreateObject(int _x, int _y, TSubclassOf<T> &_type)
 {
-	if (Objects[_y][_x].IsValid())
+	ATObject *result;
+	ATObject **resultPtr = Objects.FindByPredicate([_x, _y](ATObject *obj) {return obj->X == _x && obj->Y == _y; });
+	if (resultPtr)
 	{
-		return (T*)Objects[_y][_x].Get();
+		result = *resultPtr;
+	}
+	else
+	{
+		result = GetWorld()->SpawnActor<T>(_type, GetVectorByCoords(_x, _y), FRotator::ZeroRotator);
+		Objects.Add(result);
 	}
 
-	T *result = GetWorld()->SpawnActor<T>(_type, GetVectorByCoords(_x, _y), FRotator::ZeroRotator);
 	result->X = _x;
 	result->Y = _y;
-	Objects[_y][_x] = TSharedPtr<ATObject>(result);
 
-	return result;
+	return (T*)result;
 }
 
 UTGameInstance::UTGameInstance()
@@ -183,58 +150,49 @@ void UTGameInstance::CreateBoom(int _x, int _y)
 
 void UTGameInstance::DestroyObject(int _x, int _y)
 {
-	if (Objects[_y][_x].IsValid() && Objects[_y][_x].Get()->IsValidLowLevel())
+	Objects.RemoveAll([_x, _y](ATObject *obj)
 	{
-		Objects[_y][_x].Get()->Destroy();
-		Objects[_y][_x].Reset();
-	}
+		if (obj->X == _x && obj->Y == _y)
+		{
+			obj->Destroy();
+			return true;
+		}
+		return false;
+	});
 }
 
 void UTGameInstance::UpdatePlayer(FString &_name, int _x, int _y)
 {
-	ATPlayer *result = nullptr;
-
-	if (Players.Num() > 0)
+	ATPlayer *result;
+	ATPlayer **resultPtr = Players.FindByPredicate([_name](ATPlayer *obj) {return obj->Name == _name; });
+	if (resultPtr)
 	{
-		ATPlayer **resultPtr = Players.FindByPredicate([&](const ATPlayer *p) { return p->Name == _name; });
-		if (resultPtr)
-		{
-			result = *resultPtr;
-		}
+		result = *resultPtr;
 	}
-
-	if (result == nullptr)
+	else
 	{
 		result = GetWorld()->SpawnActor<ATPlayer>(Player, GetVectorByCoords(_x, _y), FRotator::ZeroRotator);
 		result->Name = _name;
-		result->X = _x;
-		result->Y = _y;
 		Players.Add(result);
 	}
 
-	result->ToX = _x;
-	result->ToY = _y;
-
-	result->ToDelete = false;
+	result->X = _x;
+	result->Y = _y;
 }
 
 void UTGameInstance::UpdateChopper(int _i, int _x, int _y)
 {
-	ATMovableObject *result = nullptr;
-
+	ATObject *result;
 	if (Choppers.Num() > _i)
 	{
 		result = Choppers[_i];
 	}
 	else
 	{
-		result = GetWorld()->SpawnActor<ATMovableObject>(Chopper, GetVectorByCoords(_x, _y), FRotator::ZeroRotator);
-		result->X = _x;
-		result->Y = _y;
-		Choppers.SetNum(_i);
-		Choppers.EmplaceAt(_i, result);
+		result = GetWorld()->SpawnActor<ATObject>(Chopper, GetVectorByCoords(_x, _y), FRotator::ZeroRotator);
+		Choppers.Add(result);
 	}
 
-	result->ToX = _x;
-	result->ToY = _y;
+	result->X = _x;
+	result->Y = _y;
 }

@@ -44,11 +44,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		ATGround *Ground;
 
-	TSharedPtr<ATObject>** Objects;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TArray<ATPlayer*> Players;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TArray<ATMovableObject*> Choppers;
+	TArray<ATObject*> Objects;
+	TArray<ATObject*> Choppers;
+	TArray<ATPlayer*> Players;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
 		TSubclassOf<ATObject> SolidWall;
@@ -57,7 +55,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
 		TSubclassOf<ATPlayer> Player;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
-		TSubclassOf<ATMovableObject> Chopper;
+		TSubclassOf<ATObject> Chopper;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")
 		TSubclassOf<ATObject> Boom;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Classes")

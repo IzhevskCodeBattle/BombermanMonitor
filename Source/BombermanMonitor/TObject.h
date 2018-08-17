@@ -18,4 +18,5 @@ public:
 		int Y;
 
 	ATObject();
+	void Tick(float DeltaTime) override;
 };

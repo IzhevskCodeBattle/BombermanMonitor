@@ -3,22 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TMovableObject.h"
+#include "TObject.h"
 #include "TPlayer.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BOMBERMANMONITOR_API ATPlayer : public ATMovableObject
+class BOMBERMANMONITOR_API ATPlayer : public ATObject
 {
 	GENERATED_BODY()
 	
 public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 		FString Name;
-
-	bool ToDelete;
 
 	ATPlayer();
 };
