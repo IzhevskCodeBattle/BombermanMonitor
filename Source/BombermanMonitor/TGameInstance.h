@@ -76,6 +76,6 @@ public:
 	void CreateBoom(int _x, int _y);
 	void DestroyObject(int _x, int _y);
 
-	void UpdatePlayer(FString &_name, int _x, int _y);
-	void UpdateChopper(int _i, int _x, int _y);
+	void UpdatePlayer(FString &_name, int _x, int _y, TCHAR _state);
+	void UpdateChopper(int _i, int _x, int _y, TCHAR _state);
 };

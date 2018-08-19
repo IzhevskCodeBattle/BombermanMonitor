@@ -63,11 +63,11 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 			int score = player->AsObject()->GetIntegerField("score");
 			int x = player->AsObject()->GetIntegerField("x");
 			int y = player->AsObject()->GetIntegerField("y");
-			char state = map[y*Size + x];
 			//////////////////////
 			y = Size - y - 1;
 			//////////////////////
-			UpdatePlayer(name, x, y);
+			TCHAR state = map[y*Size + x];
+			UpdatePlayer(name, x, y, state);
 		};
 
 		int i = 0;
@@ -76,11 +76,11 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 			i++;
 			int x = chopper->AsObject()->GetIntegerField("x");
 			int y = chopper->AsObject()->GetIntegerField("y");
-			char state = map[y*Size + x];
 			//////////////////////
 			y = Size - y - 1;
 			//////////////////////
-			UpdateChopper(i, x, y);
+			TCHAR state = map[y*Size + x];
+			UpdateChopper(i, x, y, state);
 		};
 	}
 }
@@ -136,6 +136,7 @@ void UTGameInstance::CreateWall(int _x, int _y)
 
 void UTGameInstance::DestroyWall(int _x, int _y)
 {
+	CreateObject<ATObject>(_x, _y, Wall)->Dead();
 }
 
 void UTGameInstance::CreateBomb(int _x, int _y, int _counter)
@@ -161,7 +162,7 @@ void UTGameInstance::DestroyObject(int _x, int _y)
 	});
 }
 
-void UTGameInstance::UpdatePlayer(FString &_name, int _x, int _y)
+void UTGameInstance::UpdatePlayer(FString &_name, int _x, int _y, TCHAR _state)
 {
 	ATPlayer *result;
 	ATPlayer **resultPtr = Players.FindByPredicate([_name](ATPlayer *obj) {return obj->Name == _name; });
@@ -178,9 +179,13 @@ void UTGameInstance::UpdatePlayer(FString &_name, int _x, int _y)
 
 	result->X = _x;
 	result->Y = _y;
+	if (_state == L'Ѡ' || _state == L'♣')
+		result->Dead();
+	else
+		result->Renew();
 }
 
-void UTGameInstance::UpdateChopper(int _i, int _x, int _y)
+void UTGameInstance::UpdateChopper(int _i, int _x, int _y, TCHAR _state)
 {
 	ATObject *result;
 	if (Choppers.Num() > _i)
@@ -195,4 +200,8 @@ void UTGameInstance::UpdateChopper(int _i, int _x, int _y)
 
 	result->X = _x;
 	result->Y = _y;
+	if (_state == L'x')
+		result->Dead();
+	else
+		result->Renew();
 }

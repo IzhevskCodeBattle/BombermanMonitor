@@ -16,7 +16,21 @@ public:
 		int X;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 		int Y;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		bool IsDead;
 
 	ATObject();
 	void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void SetRotation(const FRotator &_rotation);
+
+	UFUNCTION(BlueprintCallable)
+		void Dead();
+	UFUNCTION(BlueprintImplementableEvent)
+		void Dead_BP();
+	UFUNCTION(BlueprintCallable)
+		void Renew();
+	UFUNCTION(BlueprintImplementableEvent)
+		void Renew_BP();
 };

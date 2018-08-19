@@ -27,7 +27,7 @@ void ATObject::Tick(float _deltaTime)
 		{
 			FVector dir = (target - pos).GetSafeNormal();
 			FRotator rot = FMatrix(dir, FVector(-dir.Y, dir.X, dir.Z), FVector::UpVector, FVector::ZeroVector).Rotator();
-			//SetRotation(rot);
+			SetRotation(rot);
 
 			if (distSquared <= 10000)
 			{
@@ -39,5 +39,25 @@ void ATObject::Tick(float _deltaTime)
 			}
 		}
 		SetActorLocation(pos);
+	}
+}
+
+void ATObject::Dead()
+{
+	if (IsDead == false)
+	{
+		IsDead = true;
+		SetActorLocation(FVector(X * 100 + 50, Y * 100 + 50, 0));
+		Dead_BP();
+	}
+}
+
+void ATObject::Renew()
+{
+	if (IsDead)
+	{
+		IsDead = false;
+		SetActorLocation(FVector(X * 100 + 50, Y * 100 + 50, 0));
+		Renew_BP();
 	}
 }
