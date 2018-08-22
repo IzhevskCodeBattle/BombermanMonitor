@@ -1,7 +1,21 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TGameInstance.h"
+#include "TPlayerController.h"
 #include "Engine.h"
+
+void UTGameInstance::Init()
+{
+	if (PointsTable)
+	{
+		if (!PointsTableInstance)
+		{
+			PointsTableInstance = CreateWidget<UTPointsTable>(this, PointsTable);
+			PointsTableInstance->InitList_BP();
+			PointsTableInstance->gameInstance = this;
+		}
+	}
+}
 
 void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponsePtr _response, bool _wasSuccessful)
 {
@@ -57,6 +71,7 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 			}
 		}
 
+		PointsTableInstance->StartUpdate();
 		for (auto player : JsonObject->GetArrayField("playerInfoList"))
 		{
 			FString name = player->AsObject()->GetStringField("name");
@@ -68,7 +83,9 @@ void UTGameInstance::OnResponseReceived(FHttpRequestPtr _request, FHttpResponseP
 			//////////////////////
 			TCHAR state = map[y*Size + x];
 			UpdatePlayer(name, x, y, state);
+			PointsTableInstance->UpdatePlayerPoints(name, score);
 		};
+		PointsTableInstance->EndUpdate();
 
 		int i = 0;
 		for (auto chopper : JsonObject->GetArrayField("choppers"))
@@ -122,6 +139,8 @@ void UTGameInstance::Disconnect()
 	Objects.RemoveAll([](ATObject *obj) {obj->Destroy(); return true; });
 	Players.RemoveAll([](ATPlayer *obj) {obj->Destroy(); return true; });
 	Choppers.RemoveAll([](ATObject *obj) {obj->Destroy(); return true; });
+
+	((ATPlayerController*)GetFirstLocalPlayerController())->LookType = ELookType::LT_MANUAL;
 }
 
 void UTGameInstance::Update()

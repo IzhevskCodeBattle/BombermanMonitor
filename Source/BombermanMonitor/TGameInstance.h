@@ -9,6 +9,8 @@
 #include "TObject.h"
 #include "TPlayer.h"
 #include "TCounterObject.h"
+#include "TPointsRow.h"
+#include "TPointsTable.h"
 #include "TGameInstance.generated.h"
 
 /**
@@ -41,6 +43,12 @@ private:
 public:
 	UPROPERTY(BlueprintReadOnly)
 		int Size;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
+		TSubclassOf<UTPointsRow> PointsRow;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
+		TSubclassOf<UTPointsTable> PointsTable;
+	UPROPERTY(/*BlueprintReadOnly, EditAnywhere, Category = "UI"*/)
+		UTPointsTable *PointsTableInstance;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		ATGround *Ground;
 
@@ -63,6 +71,8 @@ public:
 
 	UTGameInstance();
 
+	void Init()override;
+
 	UFUNCTION(BlueprintCallable)
 		void Connect(FString _serverAddress, FString _serverPort);
 	UFUNCTION(BlueprintCallable)
@@ -80,4 +90,17 @@ public:
 
 	void UpdatePlayer(FString &_name, int _x, int _y, TCHAR _state);
 	void UpdateChopper(int _i, int _x, int _y, TCHAR _state);
+
+	int GetNextPlayerIndex(int startIndex)
+	{
+		for (int i = startIndex + 1; i < Players.Num(); i++)
+		{
+			return i;
+		}
+		for (int i = 0; i < Players.Num(); i++)
+		{
+			return i;
+		}
+		return -1;
+	}
 };
