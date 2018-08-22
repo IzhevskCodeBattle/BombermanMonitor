@@ -146,7 +146,7 @@ void UTGameInstance::CreateBomb(int _x, int _y, int _counter)
 
 void UTGameInstance::CreateBoom(int _x, int _y)
 {
-	CreateObject<ATObject>(_x, _y, Boom);
+	CreateObject<ATObject>(_x, _y, Boom)->Dead();
 }
 
 void UTGameInstance::DestroyObject(int _x, int _y)
