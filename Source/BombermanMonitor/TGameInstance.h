@@ -65,6 +65,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void Connect(FString _serverAddress, FString _serverPort);
+	UFUNCTION(BlueprintCallable)
+		void Disconnect();
 
 	UFUNCTION(BlueprintCallable)
 		void Update();

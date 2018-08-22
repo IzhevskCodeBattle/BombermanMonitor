@@ -115,6 +115,15 @@ void UTGameInstance::Connect(FString _serverAddress, FString _serverPort)
 	url = "http://" + _serverAddress + ":" + _serverPort + "/codenjoy-contest/rest/game/bomberman";
 }
 
+void UTGameInstance::Disconnect()
+{
+	Size = 0;
+	Ground->Init(0);
+	Objects.RemoveAll([](ATObject *obj) {obj->Destroy(); return true; });
+	Players.RemoveAll([](ATPlayer *obj) {obj->Destroy(); return true; });
+	Choppers.RemoveAll([](ATObject *obj) {obj->Destroy(); return true; });
+}
+
 void UTGameInstance::Update()
 {
 	TSharedRef<IHttpRequest> Request = http->CreateRequest();
