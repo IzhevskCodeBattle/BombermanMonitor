@@ -38,8 +38,6 @@ void ATPlayerController::BeginPlay()
 
 void ATPlayerController::ShowTable()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "ShowTable");
-
 	if (gameInstance->PointsTableInstance->GetIsVisible() == false)
 	{
 		gameInstance->PointsTableInstance->AddToViewport();
@@ -48,7 +46,6 @@ void ATPlayerController::ShowTable()
 
 void ATPlayerController::HideTable()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "HideTable");
 	if (gameInstance->PointsTableInstance->GetIsVisible())
 	{
 		gameInstance->PointsTableInstance->RemoveFromViewport();
@@ -90,7 +87,6 @@ void ATPlayerController::MouseLookX(float _scale)
 			break;
 		}
 		FRotator r = GetPawn()->GetActorRotation();
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Pitch=" + FString::FromInt(r.Pitch) + "Yaw=" + FString::FromInt(r.Yaw) + "Roll=" + FString::FromInt(r.Roll));
 	}
 }
 
@@ -114,7 +110,6 @@ void ATPlayerController::MouseLookY(float _scale)
 		}
 
 		FRotator r = GetPawn()->GetActorRotation();
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Pitch=" + FString::FromInt(r.Pitch) + "Yaw=" + FString::FromInt(r.Yaw) + "Roll=" + FString::FromInt(r.Roll));
 	}
 }
 
@@ -192,6 +187,4 @@ void ATPlayerController::SetPlayerLook()
 	GetPawn()->AttachToComponent(Director->Turret, FAttachmentTransformRules(EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, true));
 	GetPawn()->SetActorRelativeLocation(FVector(0, 500, 700));
 	SetControlRotation((playerToAttach->GetActorLocation() - GetPawn()->GetActorLocation()).Rotation());
-
-	GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Blue, "PLAYER");
 }

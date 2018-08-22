@@ -19,7 +19,7 @@ void ATObject::Tick(float _deltaTime)
 	float distSquared = FVector::DistSquared(pos, target);
 	if (distSquared > 0)
 	{
-		if (distSquared < 1)
+		if (distSquared < 1 || distSquared > 40000)
 		{
 			pos = target;
 		}
