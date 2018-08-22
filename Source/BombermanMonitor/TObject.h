@@ -23,7 +23,7 @@ public:
 	void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void SetRotation(const FRotator &_rotation);
+		void SetRotation_BP(const FRotator &_rotation);
 
 	UFUNCTION(BlueprintCallable)
 		void Dead();

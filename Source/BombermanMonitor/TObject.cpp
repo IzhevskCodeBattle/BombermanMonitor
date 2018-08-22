@@ -27,7 +27,7 @@ void ATObject::Tick(float _deltaTime)
 		{
 			FVector dir = (target - pos).GetSafeNormal();
 			FRotator rot = FMatrix(dir, FVector(-dir.Y, dir.X, dir.Z), FVector::UpVector, FVector::ZeroVector).Rotator();
-			SetRotation(rot);
+			SetRotation_BP(rot);
 
 			if (distSquared <= 10000)
 			{
